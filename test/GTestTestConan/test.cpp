@@ -16,13 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-#include <string>
+#include <gtest/gtest.h>
 
-void logMessage(const char *format, ...);
-const std::string getTimestamp();
-bool checkFileExists(std::string filename);
-
-std::string stringReplace(std::string str, const std::string &from, const std::string &to);
-std::string getTextBetweenDelimiters(const std::string s, const std::string d1, const std::string d2);
-std::string getAndEatTextBetweenDelimiters(std::string &s, std::string d1, std::string d2);
+TEST(GetTimestamp, common) { }

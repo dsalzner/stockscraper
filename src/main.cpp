@@ -16,38 +16,40 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "CStocks.h"
+#include "common.h"
+#include <iomanip> // setw
 #include <iostream>
 #include <string>
-#include <iomanip> // setw
-#include "common.h"
-#include "CStocks.h"
 #define VERSION "0.0.1"
 #define STR_ALIGN std::left << std::setw(40)
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   std::string mode = "";
   std::string param = "";
-  if(argc == 3) {
+  if (argc == 3) {
     mode = argv[1];
     param = argv[2];
   }
 
   CStocks stocks;
-  if(mode == "quote" && param.length() == 12) {
+  if (mode == "quote" && param.length() == 12) {
     CStocks::SStockResult res = stocks.quoteForIsin(param);
     std::cout << res.stockName << ": " << res.quote << std::endl;
     return 0;
   }
-  if(mode == "fundamentals" && param.length() == 12) {
+  if (mode == "fundamentals" && param.length() == 12) {
     CStocks::SStockResult res = stocks.fundamentalsForIsin(param);
     std::cout << res.stockName << ": " << res.quote << std::endl;
     return 0;
   }
 
-  for(uint8_t i = 0; i < 80; i++) std::cout << "-";
+  for (uint8_t i = 0; i < 80; i++)
+    std::cout << "-";
   std::cout << std::endl << "StockScraper " << VERSION << std::endl;
   std::cout << "Copyright (C) 2023 D.Salzner <mail@dennissalzner.de>" << std::endl;
-  for(uint8_t i = 0; i < 80; i++) std::cout << "-";
+  for (uint8_t i = 0; i < 80; i++)
+    std::cout << "-";
   std::cout << std::endl << std::endl;
 
   std::cout << STR_ALIGN << "quote <ISIN>";
@@ -62,7 +64,7 @@ int main(int argc, char* argv[]) {
   std::cout << STR_ALIGN << "historic <ISIN>";
   std::cout << "historic price information" << std::endl;
 
-  std::cout << STR_ALIGN << "index [dax, mdax, s&p_500, cac_40, ...]"<< std::right << std::setw(12);
+  std::cout << STR_ALIGN << "index [dax, mdax, s&p_500, cac_40, ...]" << std::right << std::setw(12);
   std::cout << "list of ISINs in a stock market index" << std::endl;
 
   return 0;

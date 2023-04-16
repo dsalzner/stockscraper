@@ -5,10 +5,12 @@ A minimal stock scraping utility that pulls stock information from public web si
 ## Disclaimer
 
 This tool is purely for educational purposes.
-Web scraping can be against the Terms of Service of the web sites you are scraping information from.
-We keep traffic on the web sites as low as possible by caching.
 
-The HTML code of the pages that are being scrapped from may change over time. This may make adjustments in the code required.
+* Web scraping can be against the Terms of Service of the web sites you are scraping information from.
+* We keep traffic on the web sites as low as possible by caching
+* Keep in mind that you may be violating copyright, if you publish information gathered by this tool
+
+The HTML code of the pages that are being scraped from may change over time. This may make adjustments in the code required.
 
 ## Design Goals
 
@@ -26,7 +28,7 @@ The tool is indended to be
   * the code size is <700 LOC
 * *compatible*
   * the code can easily be moved to any platform that C++ code can be compiled for
-  * with minimal adaptions it can run on Linux, Windows, Android, Arduino or esp8266
+  * with minimal adaptations it can run on Linux, Windows, Android, Arduino or esp8266
 * *cached*
   * the result of every request is stored in a timestamped file
   * this makes debugging easier
@@ -78,7 +80,7 @@ libreoffice --calc out.csv
 ```
 ./build/main.bin us2473617023 | grep -E "^; |Eigenkapitalquote" | grep -B1 "Eigenkapitalquote"
 
-; 2016; 2017; 2018; 2019; 2020; 2021; 2022;
+; 2016; 2017; 2018; 2019; 2020; 2021; 2022; 
 Eigenkapitalquote in %; 20,86; 23,79; 22,71; 23,80; 2,13; 4,87; 8,21;
 ```
 
@@ -118,6 +120,14 @@ and copy the contents of "my_crt.crt" into the variable "const char* test_root_c
 
 ## Release History
 
+### v0.0.2
+
+* clang-format
+* package_test
+* gtest
+* wall werror
+* package promotion pipeline
+
 ### v0.0.1
 
 * stock quote and fundamentals from one data provider
@@ -127,3 +137,4 @@ and copy the contents of "my_crt.crt" into the variable "const char* test_root_c
 * readme and license
 
 ##
+

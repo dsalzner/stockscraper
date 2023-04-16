@@ -16,10 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <fstream>
-#include "common.h"
 #include "CStocks.h"
+#include "common.h"
+#include <fstream>
+#include <iostream>
+#include <string>
 
 CStocks::CStocks() {
   mQuoteForISIN["finanzen-net"] = CStocks::quoteForIsinFinanzenNet;
@@ -41,16 +42,16 @@ CStocks::SStockResult CStocks::urlForFinanzenNet(std::string isin) {
 
   std::string url = "/aktien/" + isin + "-aktie";
   std::string page = getHttpsRequest("www.finanzen.net", 443, url, fileName + "-1.txt");
-  if(page.find("Location") != std::string::npos) {
-	d1 = "Location: ";
-	d2 = "\r\nServer";
+  if (page.find("Location") != std::string::npos) {
+    d1 = "Location: ";
+    d2 = "\r\nServer";
     url = getTextBetweenDelimiters(page, d1, d2);
     page = getHttpsRequest("www.finanzen.net", 443, url, fileName + "-2.txt");
   }
 
   d1 = "<section class=\"page-content__container\" id=\"suggestBESearch\">";
-	d2 = "</section>";
-  if(page.find(d1) != std::string::npos) {
+  d2 = "</section>";
+  if (page.find(d1) != std::string::npos) {
     std::string suggestionTable = getTextBetweenDelimiters(page, d1, d2);
 
     d1 = "<a href=\"/aktien/";
@@ -69,7 +70,7 @@ CStocks::SStockResult CStocks::quoteForIsinFinanzenNet(std::string isin) {
   std::string fileName = "stocks-" + getTimestamp() + "-finanzennet-" + isin;
 
   std::string page = getHttpsRequest("www.finanzen.net", 443, res.url, fileName + "-quote.txt");
-  if(page.find(isin) != std::string::npos) {
+  if (page.find(isin) != std::string::npos) {
     d1 = "td class=\"table__td\">Kurs</td><td class=\"table__td padding-horizontal-0.00\">";
     d2 = "</td></tr>";
     res.quote = getTextBetweenDelimiters(page, d1, d2);
@@ -90,19 +91,19 @@ CStocks::SStockResult CStocks::fundamentalsForIsinFinanzenNet(std::string isin) 
 
   d1 = "<article class=\"page-content__item\">";
   d2 = "</article>";
-  while(page.find(d1) != std::string::npos) {
+  while (page.find(d1) != std::string::npos) {
     std::string block = getAndEatTextBetweenDelimiters(page, d1, d2);
 
     std::string d1b = "<tr class=\"table__tr\">";
     std::string d2b = "</tr>";
-    while(block.find(d1b) != std::string::npos) {
+    while (block.find(d1b) != std::string::npos) {
       std::string line = getAndEatTextBetweenDelimiters(block, d1b, d2b);
       std::cout << std::endl;
 
       // -- header
       std::string d1c = "<th class=\"table__th\">";
       std::string d2c = "</th>";
-      while(line.find(d1c) != std::string::npos) {
+      while (line.find(d1c) != std::string::npos) {
         std::string entry = getAndEatTextBetweenDelimiters(line, d1c, d2c);
         std::cout << entry << "; ";
       }
@@ -110,12 +111,12 @@ CStocks::SStockResult CStocks::fundamentalsForIsinFinanzenNet(std::string isin) 
       // -- line
       d1c = "<td class=\"table__td\">";
       d2c = "</td>";
-      while(line.find(d1c) != std::string::npos) {
+      while (line.find(d1c) != std::string::npos) {
         std::string entry = getAndEatTextBetweenDelimiters(line, d1c, d2c);
 
         std::string d1d = "<label class=";
         std::string d2d = "</label>";
-        if(entry.find(d1d) != std::string::npos) {
+        if (entry.find(d1d) != std::string::npos) {
           entry = getAndEatTextBetweenDelimiters(entry, d1d, d2d);
           auto junk = getAndEatTextBetweenDelimiters(entry, "\"bguvchart_", "\">");
         }

@@ -18,10 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string>
-#include <map>
-#include "common.h"
 #include "CHttpsGet.h"
+#include "common.h"
+#include <map>
+#include <string>
 
 class CStocks {
 public:
@@ -37,8 +37,8 @@ public:
   SStockResult fundamentalsForIsin(std::string isin, std::string dataProvider = "finanzen-net");
 
 private:
-  std::map<std::string, SStockResult(*)(std::string)> mQuoteForISIN;
-  std::map<std::string, SStockResult(*)(std::string)> mFundamentalsForISIN;
+  std::map<std::string, SStockResult (*)(std::string)> mQuoteForISIN;
+  std::map<std::string, SStockResult (*)(std::string)> mFundamentalsForISIN;
 
   static SStockResult urlForFinanzenNet(std::string isin);
   static SStockResult quoteForIsinFinanzenNet(std::string isin);

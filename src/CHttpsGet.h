@@ -17,8 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #pragma once
+#include <string>
 
-static void cbMbedtlsLogMessage( void *ctx, int level, const char *file, int line, const char *str);
+void cbMbedtlsLogMessage(void *ctx, int level, const char *file, int line, const char *str);
 std::string prepareHeader(std::string host, std::string path);
 std::string httpsGetRequest(std::string host, int port, std::string requestHeader);
 std::string getHttpsRequest(std::string host, int port, std::string path, std::string tag);

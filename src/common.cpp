@@ -16,14 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
+#include "common.h"
 #include <algorithm>
-#include <string>
 #include <fstream>
+#include <iostream>
 #include <stdarg.h> // va_list
 #include <stdio.h>  // printf
+#include <string>
 #include <time.h>
-#include "common.h"
 
 void logMessage(const char *format, ...) {
   va_list args;
@@ -43,13 +43,14 @@ const std::string getTimestamp() {
 
 bool checkFileExists(std::string filename) {
   std::ifstream file(filename);
-  if(!file.is_open()) return false;
+  if (!file.is_open())
+    return false;
   return true;
 }
 
-std::string stringReplace(std::string str, const std::string& from, const std::string& to) {
+std::string stringReplace(std::string str, const std::string &from, const std::string &to) {
   size_t start_pos = 0;
-  while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+  while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
     str.replace(start_pos, from.length(), to);
     start_pos += to.length();
   }
@@ -59,11 +60,11 @@ std::string stringReplace(std::string str, const std::string& from, const std::s
 std::string getTextBetweenDelimiters(const std::string s, const std::string d1, const std::string d2) {
   size_t pos1 = s.find(d1);
   size_t pos2 = s.find(d2, pos1 + d1.size() + 1);
-  if(pos1 == std::string::npos || pos2 == std::string::npos)
+  if (pos1 == std::string::npos || pos2 == std::string::npos)
     return "";
   pos1 += d1.size();
 
-  if(pos1 > pos2)
+  if (pos1 > pos2)
     return "";
   return s.substr(pos1, pos2 - pos1);
 }
@@ -71,9 +72,9 @@ std::string getTextBetweenDelimiters(const std::string s, const std::string d1, 
 std::string getAndEatTextBetweenDelimiters(std::string &s, std::string d1, std::string d2) {
   size_t pos1 = s.find(d1);
   size_t pos2 = s.find(d2, pos1 + 1);
-  if(pos1 == std::string::npos || pos2 == std::string::npos)
+  if (pos1 == std::string::npos || pos2 == std::string::npos)
     return "";
-  if(pos1 > pos2)
+  if (pos1 > pos2)
     return "";
   pos1 += d1.size();
   std::string result = "" + s.substr(pos1, pos2 - pos1);

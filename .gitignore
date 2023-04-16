@@ -14,3 +14,4 @@ src/conanbuildinfo.txt
 src/conaninfo.txt
 src/graph_info.json
 src/stocks-*.txt
+test/ClangFormatTestConan/build/

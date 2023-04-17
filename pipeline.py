@@ -31,36 +31,49 @@ except conans.errors.ConanException as error:
 def createPackageByAPI(conanFile):
     results = conan_api.create(conanFile, user="main", channel="built")
     packageId = results["installed"][0]["recipe"]["id"]
-    return packageId
+    rootPath = results["installed"][0]["packages"][0]["cpp_info"]["rootpath"]
+    return (packageId, rootPath)
 
 def runCmd(cmd):
     print(cmd)
     subprocess.run(shlex.split(cmd), check=True)
 
-print("[ ] Create StockScraper - Release")
-conanFile = os.path.join(scriptDir, "src", "conanfile.py")
-packageId = createPackageByAPI(conanFile)
+cmakeCacheFile = os.path.join(scriptDir, "src", "CMakeCache.txt")
+if os.path.isfile(cmakeCacheFile):
+    os.remove(cmakeCacheFile)
 
-print("[ ] Create StockScraper - Debug")
+print("[ ] Create StockScraper")
+conanFile = os.path.join(scriptDir, "src", "conanfile.py")
+(packageId, rootPath) = createPackageByAPI(conanFile)
+runCmd(f'conan create {conanFile} main/built -s build_type="Debug"')
+
+print("[ ] Create StockScraperCli")
+conanFile = os.path.join(scriptDir, "src-cli", "conanfile.py")
+(packageIdCli, rootPathCli) = createPackageByAPI(conanFile)
 runCmd(f'conan create {conanFile} main/built -s build_type="Debug"')
 
 print("[ ] Create ClangFormatToolConan")
-conanFile = os.path.join(scriptDir, "test", "ClangFormatToolConan", "conanfile.py")
-recipes = conan_api.search_recipes("clang-format/16.0.0@main/built")
-if len(recipes["results"][0]["items"]) == 0:
+conanFile = os.path.join(scriptDir, "test", "ClangToolsConan", "conanfile.py")
+recipes = conan_api.search_recipes("clang-tools/16.0.0@main/built")
+if len(recipes["results"]) == 0:
     runCmd(f'conan create {conanFile} "16.0.0@main/stable"')
 
-print("[ ] Test ClangFormatTestConan")
-conanFile = os.path.join(scriptDir, "test", "ClangFormatTestConan")
+print("[ ] Test ClangToolsTestConan")
+conanFile = os.path.join(scriptDir, "test", "ClangToolsTestConan")
 runCmd(f'conan test {conanFile} "{packageId}" -s build_type="Debug"')
+runCmd(f'conan test {conanFile} "{packageIdCli}" -s build_type="Debug"')
 
 print("[ ] Promote StockScraper 'built' -> 'testing'")
-runCmd(f'conan copy "{packageId}" main/testing')
+runCmd(f'conan copy --force "{packageId}" main/testing')
 #packageId = packageId.replace("built", "testing")
 
 print("[ ] Test GTestTestConan")
 conanFile = os.path.join(scriptDir, "test", "GTestTestConan")
 runCmd(f'conan test {conanFile} "{packageId}" -s build_type="Debug"')
 
-
-
+print(f'[ ] Run cli')
+os.chdir(rootPathCli)
+cliBinary = os.path.join("bin", "stockscraper-cli")
+commandLine = f'{cliBinary} fundamentals US2473617023'
+print(commandLine)
+os.system(commandLine)

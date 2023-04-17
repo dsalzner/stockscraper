@@ -1,4 +1,4 @@
-"""
+/*
 StockScraper
 Copyright (C) 2023 D.Salzner <mail@dennissalzner.de>
 
@@ -14,18 +14,35 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+*/
 
-import os
-from conans import ConanFile
+#pragma once
+#include <memory>
+#include <string>
+#include <vector>
 
-class StockScraperTestConan(ConanFile):
-    def requirements(self):
-        self.requires(self.tested_reference_str)
-        
-    def test(self):
-        packagePath = self.deps_cpp_info[self.tested_reference_str.split("/")[0]].rootpath
-        stockScrapperBinary = os.path.join(packagePath, "bin", "stockscraper")
-        if not os.path.isfile(stockScrapperBinary):
-            raise Exception("Package does not contain the stockScrapper binary")
-        
+class CStocks;
+
+class CStockScraper {
+public:
+  struct SDataSet {
+    std::string date = "";
+    std::string key = "";
+    std::string value = "";
+  };
+
+  struct SStockResult {
+    std::string isin = "";
+    std::string stockName = "";
+    std::string url = "";
+    std::vector<SDataSet> dataSets;
+  };
+
+  CStockScraper();
+  ~CStockScraper();
+  SStockResult quoteForIsin(std::string isin, std::string dataProvider = "finanzen-net");
+  SStockResult fundamentalsForIsin(std::string isin, std::string dataProvider = "finanzen-net");
+
+private:
+  std::unique_ptr<CStocks> m_stocks;
+};

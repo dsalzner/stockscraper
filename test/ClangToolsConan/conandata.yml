@@ -1,4 +1,4 @@
-binaries:
+archive:
   Linux:
     "16.0.0":
       url: "https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.0/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz"

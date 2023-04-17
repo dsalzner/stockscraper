@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "CHttpsGet.h"
 #include "common.h"
-#include <cassert>
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,18 +67,18 @@ const char *test_root_ca = "-----BEGIN CERTIFICATE-----\n"
                            "shTAzw==\n"
                            "-----END CERTIFICATE-----\n";
 
-static void cbMbedtlsLogMessage(void *ctx, int level, const char *file, int line, const char *str) {
+void CHttpsGet::cbMbedtlsLogMessage(void *ctx, int level, const char *file, int line, const char *str) {
   logMessage("mbedtls %s:%04d: %s", file, line, str);
 }
 
-std::string prepareHeader(std::string host, std::string path) {
+std::string CHttpsGet::httpsGetHeader(std::string host, std::string path) {
   std::string userAgent = "curl/7.81.0";
   std::string request = "GET " + path + " HTTP/2\r\nHost: " + host + "\r\nuser-agent: " + userAgent +
                         "\r\naccept: */*\r\nConnection: close\r\n\r\n";
   return request;
 }
 
-std::string httpsGetRequest(std::string host, int port, std::string requestHeader) {
+std::string CHttpsGet::httpsRequest(std::string host, int port, std::string requestHeader) {
   mbedtls_net_context server_fd;
   mbedtls_entropy_context entropy;
   mbedtls_ctr_drbg_context ctr_drbg;
@@ -100,21 +100,21 @@ std::string httpsGetRequest(std::string host, int port, std::string requestHeade
   const char *pers = "ssl_client1";
   ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers, strlen(pers));
   if (ret != 0) {
-    logMessage("failed - mbedtls_ctr_drbg_seed returned %d\n", ret);
+    errorMessage("mbedtls_ctr_drbg_seed returned %d\n", ret);
     return "";
   }
 
   // init certificates
   ret = mbedtls_x509_crt_parse_file(&cacert, "/etc/ssl/certs/ca-certificates.crt");
   if (ret < 0) {
-    logMessage("failed - mbedtls_x509_crt_parse returned -0x%x\n", (unsigned int)-ret);
+    errorMessage("mbedtls_x509_crt_parse returned -0x%x\n", (unsigned int)-ret);
     return "";
   }
 
   // connect to server
   ret = mbedtls_net_connect(&server_fd, host.c_str(), std::to_string(port).c_str(), MBEDTLS_NET_PROTO_TCP);
   if (ret != 0) {
-    logMessage("failed - mbedtls_net_connect returned %d\n", ret);
+    errorMessage("mbedtls_net_connect returned %d\n", ret);
     return "";
   }
 
@@ -122,7 +122,7 @@ std::string httpsGetRequest(std::string host, int port, std::string requestHeade
   ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM,
                                     MBEDTLS_SSL_PRESET_DEFAULT);
   if (ret != 0) {
-    logMessage("failed - mbedtls_ssl_config_defaults returned %d\n", ret);
+    errorMessage("mbedtls_ssl_config_defaults returned %d\n", ret);
     return "";
   }
 
@@ -133,13 +133,13 @@ std::string httpsGetRequest(std::string host, int port, std::string requestHeade
 
   ret = mbedtls_ssl_setup(&ssl, &conf);
   if (ret != 0) {
-    logMessage("failed - mbedtls_ssl_setup returned %d\n", ret);
+    errorMessage("mbedtls_ssl_setup returned %d\n", ret);
     return "";
   }
 
   ret = mbedtls_ssl_set_hostname(&ssl, host.c_str());
   if (ret != 0) {
-    logMessage("failed - mbedtls_ssl_set_hostname returned %d\n", ret);
+    errorMessage("mbedtls_ssl_set_hostname returned %d\n", ret);
     return "";
   }
 
@@ -148,7 +148,7 @@ std::string httpsGetRequest(std::string host, int port, std::string requestHeade
   // handshake
   while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
     if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
-      logMessage("failed - mbedtls_ssl_handshake returned -0x%x\n", (unsigned int)-ret);
+      errorMessage("mbedtls_ssl_handshake returned -0x%x\n", (unsigned int)-ret);
       return "";
     }
   }
@@ -164,12 +164,14 @@ std::string httpsGetRequest(std::string host, int port, std::string requestHeade
 
   // write get request
   int len;
-  assert(requestHeader.size() < 1024);
+  if (requestHeader.size() > 1024) {
+    throw std::runtime_error("request header size is too long");
+  }
   unsigned char buf[1024];
   len = sprintf((char *)buf, "%s", requestHeader.c_str()); // TODO: use directly
   while ((ret = mbedtls_ssl_write(&ssl, buf, len)) <= 0) {
     if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
-      logMessage("failed - mbedtls_ssl_write returned %d\n", ret);
+      errorMessage("mbedtls_ssl_write returned %d\n", ret);
       return "";
     }
   }
@@ -188,7 +190,7 @@ std::string httpsGetRequest(std::string host, int port, std::string requestHeade
     if (ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
       break;
     if (ret < 0) {
-      logMessage("failed - mbedtls_ssl_read returned %d\n", ret);
+      errorMessage("mbedtls_ssl_read returned %d\n", ret);
       break;
     }
     if (ret == 0) {
@@ -223,16 +225,16 @@ std::string httpsGetRequest(std::string host, int port, std::string requestHeade
   return response;
 }
 
-std::string getHttpsRequest(std::string host, int port, std::string path, std::string tag) {
+std::string CHttpsGet::getHttpsRequest(std::string host, int port, std::string path, std::string tag) {
   if (!checkFileExists(tag)) {
     std::ofstream out(tag);
 
-    std::string requestHeader = prepareHeader(host, path);
+    std::string requestHeader = httpsGetHeader(host, path);
     out << requestHeader;
     out << "---------" << std::endl;
     out.flush();
 
-    std::string res = httpsGetRequest(host, port, requestHeader);
+    std::string res = httpsRequest(host, port, requestHeader);
     out << res;
     out.close();
   }

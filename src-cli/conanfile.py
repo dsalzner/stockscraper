@@ -19,9 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 from conans import ConanFile, CMake, tools
 
-class StockScraperLib(ConanFile):
-    name = "StockScraperLib"
-    description = "Stock information scraping tool - Library"
+class StockScraperCli(ConanFile):
+    name = "StockScraperCli"
+    description = "Stock information scraping tool - Command-Line Interface"
     license = "GPL-3.0"
     url = "https://github.com/dsalzner/stockscraper.git"
     homepage = "https://www.dennissalzner.de/"
@@ -36,24 +36,15 @@ class StockScraperLib(ConanFile):
         self.version = f'{version}_{githash}'
         
     def requirements(self):
-        self.requires("mbedtls/2.24.0")
+        self.requires(f'StockScraperLib/{self.version}@main/built')
       
     def build(self):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
-      
+
     def package(self):
         if self.settings.build_type == "Debug":
-            self.copy("*.h", dst="src", keep_path=False)
-            self.copy("*.cpp", dst="src", keep_path=False)
-            self.copy("public/*.cpp", dst="include")
-        self.copy("public/*.h", dst="include")
-        self.copy("*.lib", dst="lib", src="lib", keep_path=False)
-        self.copy("*.dll", dst="bin", src="bin", keep_path=False)
-        self.copy("*.dylib", dst="bin", src="lib", keep_path=False)
-        self.copy("*.so", dst="lib", keep_path=False)
-        self.copy("*.a", dst="lib", keep_path=False)
-
-    def package_info(self):
-        self.cpp_info.libs = ["stockscraper"]
+            self.copy("*.h", keep_path=False)
+            self.copy("*.cpp", keep_path=False)
+        self.copy("bin/*", dst="bin", keep_path=False)

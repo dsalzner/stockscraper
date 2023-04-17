@@ -22,21 +22,24 @@ import subprocess
 from conans import ConanFile
 from conans.errors import ConanInvalidConfiguration
 
-class ClangFormatTestConan(ConanFile):
+class ClangToolsTestConan(ConanFile):
     settings = "os", "arch", "build_type"
     generators = "cmake"
 
+    options = {"clangformat": [True, False], "clangtidy": [True, False]}
+    default_options = {"clangformat": True, "clangtidy": False}
+
     def build_requirements(self):
         self.test_requires(self.tested_reference_str)
-        self.tool_requires("clang-format/16.0.0@main/stable")
+        self.tool_requires("clang-tools/16.0.0@main/stable")
         
     def configure(self):
         if self.settings.build_type != "Debug":
-            raise ConanInvalidConfiguration("ClangFormat test recipe can only be run on Debug")
+            raise ConanInvalidConfiguration("ClangTools test recipe can only be run on Debug")
      
-    def test(self):
+    def _sourceFiles(self):
         print(f'Package to test {self.tested_reference_str}')
-        packagePath = self.deps_cpp_info[self.tested_reference_str.split("/")[0]].rootpath
+        packagePath = os.path.join(self.deps_cpp_info[self.tested_reference_str.split("/")[0]].rootpath)
         print(f'[ ] packagePath {packagePath}')
         fileMatches = []
         ignoreFiles = ["CMakeCXXCompilerId.cpp"]
@@ -47,11 +50,13 @@ class ClangFormatTestConan(ConanFile):
                         fullName = os.path.join(root, filename)
                         fileMatches.append(fullName)
         print(f'[ ] fileMatches {fileMatches}')
-
-        clangFormatBinary = os.path.join(self.deps_cpp_info["clang-format"].rootpath, "bin", "clang-format")
+        return fileMatches
+    
+    def _runClangFormat(self):
+        toolBinary = os.path.join(self.deps_cpp_info["clang-tools"].rootpath, "bin", "clang-format")
         
         # -- write config
-        commandLine = f'{clangFormatBinary} -style=llvm -dump-config'
+        commandLine = f'{toolBinary} -style=llvm -dump-config'
         clangFormatConfig = subprocess.check_output(commandLine, shell=True).decode('utf8').strip()
         clangFormatConfig = clangFormatConfig.replace("ColumnLimit:     80", "ColumnLimit:    120")
         clangFormatConfig = clangFormatConfig.replace("  AfterControlStatements: true", "  AfterControlStatements: false")
@@ -60,21 +65,45 @@ class ClangFormatTestConan(ConanFile):
             tf.write(clangFormatConfig)
 
         issuesFound = False
-        for fileName in fileMatches:
+        for fileName in self._sourceFiles():
             style = "LLVM"
             
             # -- dry run to display errors
-            commandLine = f'{clangFormatBinary} -style=file:.clang-format --dry-run {fileName}'
-            clangFormatResult = subprocess.check_output(commandLine, shell=True).decode('utf8').strip()
-            for (lineNo, line) in enumerate(clangFormatResult.split("\n")):
+            commandLine = f'{toolBinary} -style=file:.clang-format --dry-run {fileName}'
+            result = subprocess.check_output(commandLine, shell=True).decode('utf8').strip()
+            for (lineNo, line) in enumerate(result.split("\n")):
                 if lineNo > 1:
                     print(str(lineNo) + " - " + line)
                     issuesFound = True
 
             # -- auto-patch
-            commandLine = f'{clangFormatBinary} -style=file:.clang-format --i {fileName}'
+            commandLine = f'{toolBinary} -style=file:.clang-format --i {fileName}'
             subprocess.check_output(commandLine, shell=True).decode('utf8').strip()
 
         if issuesFound:
-            raise Exception(f'clang-format is reporting code formatting issues. Files in {packagePath} have been auto-formatted, you may overwrite your source code with them')
+            raise Exception(f'clang-format is reporting issues. Files in {packagePath} have been auto-formatted, you may overwrite your source code with them')
+    
+    def _runClangTidy(self):
+        toolBinary = os.path.join(self.deps_cpp_info["clang-tools"].rootpath, "bin", "clang-tidy")
+        issuesFound = False
+        for fileName in self._sourceFiles():
+            print(f'[ ] clang-tidy {fileName}')
+            if ".cpp" in fileName or ".c" in fileName:
+                commandLine = f'{toolBinary} clang-tidy {fileName} -checks=* -- -std=c++11 -I/usr/include/c++/11/ -I/usr/include/x86_64-linux-gnu/c++/11/'
+                print(f'running {commandLine}')
+                try:
+                    result = subprocess.run(commandLine, shell=True).decode('utf8').strip()
+                except:
+                    issuesFound = True
+
+        if issuesFound:
+            raise Exception(f'clang-tidy is reporting issues.')
+            
+    def test(self):
+        if self.options.clangformat:
+            self._runClangFormat()
+        if self.options.clangtidy:
+            self._runClangTidy()
+
+
 

@@ -47,41 +47,42 @@ The StockScraper tool uses the "International Securities Identification Number" 
 ### Current Stock Price
 
 ```
-./bin/stockscraper quote US2473617023
+./bin/stockscraper-cli quote us2473617023
 ```
 
 ## Fundamentals (debt ratio, P/E-ratio, etc...)
 
 ```
-./bin/stockscraper fundamentals US2473617023
+./bin/stockscraper-cli fundamentals us2473617023
 ```
 
 ## (Not Implemented) Historic Price Information
 
 ```
-./bin/stockscraper historic US2473617023
+./bin/stockscraper-cli historic us2473617023
 ```
 
 ## (Not Implemented) List of ISINs in a Stock Market Index
 
 ```
-./bin/stockscraper historic US2473617023
+./bin/stockscraper-cli index sdax
 ```
 
 ## Import to Spreadsheet
 
 ```
-./bin/stockscraper fundamentals US2473617023 > out.csv
+./bin/stockscraper-cli fundamentals us2473617023 > out.csv
 libreoffice --calc out.csv
 ```
 
 ## Output only one aspect from the Fundamentals
 
 ```
-./build/main.bin us2473617023 | grep -E "^; |Eigenkapitalquote" | grep -B1 "Eigenkapitalquote"
+./bin/stockscraper-cli fundamentals us2473617023 | grep "Eigenkapitalquote"
 
-; 2016; 2017; 2018; 2019; 2020; 2021; 2022; 
-Eigenkapitalquote in %; 20,86; 23,79; 22,71; 23,80; 2,13; 4,87; 8,21;
+2016;Eigenkapitalquote in %;20,86
+2017;Eigenkapitalquote in %;23,79
+(..)
 ```
 
 ## How to Build
@@ -91,16 +92,16 @@ Eigenkapitalquote in %; 20,86; 23,79; 22,71; 23,80; 2,13; 4,87; 8,21;
 ```
 apt-get -y install python3 python3-pip
 pip3 install conan
-conan download -r conancenter "mbedtls/2.24.0@" -p f34868f16603ab1572661da51e4f3294771a98bf
 ```
 
 ### Build the Project
 
 ```
-cd src/
+cd src-cli/
+conan create ../src
 conan install .
 conan build .
-./bin/stockscraper
+./bin/stockscraper-cli fundamentals us2473617023
 ```
 
 ## How to generate your own HTTP certificate
@@ -119,6 +120,13 @@ programs/x509/cert_write selfsign=1 issuer_key=our_key.key                    \
 and copy the contents of "my_crt.crt" into the variable "const char* test_root_ca" in CHttpsGet.cpp
 
 ## Release History
+
+### v0.0.3
+
+* log message exception handling
+* lib and cli separation
+* key value pairs for data internally
+* clang-tidy
 
 ### v0.0.2
 

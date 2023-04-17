@@ -19,7 +19,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include <string>
 
-void cbMbedtlsLogMessage(void *ctx, int level, const char *file, int line, const char *str);
-std::string prepareHeader(std::string host, std::string path);
-std::string httpsGetRequest(std::string host, int port, std::string requestHeader);
-std::string getHttpsRequest(std::string host, int port, std::string path, std::string tag);
+class CHttpsGet {
+public:
+  static std::string getHttpsRequest(std::string host, int port, std::string path, std::string tag);
+
+private:
+  static std::string httpsGetHeader(std::string host, std::string path);
+  static std::string httpsRequest(std::string host, int port, std::string requestHeader);
+  static void cbMbedtlsLogMessage(void *ctx, int level, const char *file, int line, const char *str);
+};

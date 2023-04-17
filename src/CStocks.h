@@ -20,27 +20,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CHttpsGet.h"
 #include "common.h"
+#include "public/stockscraper.h"
 #include <map>
 #include <string>
+#include <vector>
 
 class CStocks {
 public:
-  struct SStockResult {
-    std::string isin = "";
-    std::string stockName = "";
-    std::string url = "";
-    std::string quote = "";
-  };
-
   CStocks();
-  SStockResult quoteForIsin(std::string isin, std::string dataProvider = "finanzen-net");
-  SStockResult fundamentalsForIsin(std::string isin, std::string dataProvider = "finanzen-net");
+  ~CStocks();
+  CStockScraper::SStockResult quoteForIsin(std::string isin, std::string dataProvider = "finanzen-net");
+  CStockScraper::SStockResult fundamentalsForIsin(std::string isin, std::string dataProvider = "finanzen-net");
 
 private:
-  std::map<std::string, SStockResult (*)(std::string)> mQuoteForISIN;
-  std::map<std::string, SStockResult (*)(std::string)> mFundamentalsForISIN;
+  std::map<std::string, CStockScraper::SStockResult (*)(std::string)> mQuoteForISIN;
+  std::map<std::string, CStockScraper::SStockResult (*)(std::string)> mFundamentalsForISIN;
 
-  static SStockResult urlForFinanzenNet(std::string isin);
-  static SStockResult quoteForIsinFinanzenNet(std::string isin);
-  static SStockResult fundamentalsForIsinFinanzenNet(std::string isin);
+  static CStockScraper::SStockResult urlForFinanzenNet(std::string isin);
+  static CStockScraper::SStockResult quoteForIsinFinanzenNet(std::string isin);
+  static CStockScraper::SStockResult fundamentalsForIsinFinanzenNet(std::string isin);
 };

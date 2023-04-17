@@ -21,7 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <iostream>
 #include <stdarg.h> // va_list
-#include <stdio.h>  // printf
+#include <stdexcept>
+#include <stdio.h> // printf
 #include <string>
 #include <time.h>
 
@@ -30,6 +31,17 @@ void logMessage(const char *format, ...) {
   va_start(args, format);
   vprintf(format, args);
   va_end(args);
+}
+
+void errorMessage(const char *format, ...) {
+  char buffer[256];
+  va_list args;
+  va_start(args, format);
+  vsprintf(buffer, format, args);
+  va_end(args);
+
+  std::string msg = buffer;
+  throw std::runtime_error(msg);
 }
 
 const std::string getTimestamp() {

@@ -19,10 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 from conan import ConanFile, tools
 
-class ClangFormatToolConan(ConanFile):
-    name = "clang-format"
+class ClangToolsConan(ConanFile):
+    name = "clang-tools"
     homepage = "https://clang.llvm.org/docs/ClangFormat.html"
-    description = "Clang-Format Tool Recipe"
+    description = "Clang Tools Recipe"
     no_copy_source = True
     settings = "os"
     url = "https://github.com/llvm/llvm-project/releases"
@@ -30,10 +30,12 @@ class ClangFormatToolConan(ConanFile):
     build_type="Any"
 
     def source(self):
-        tools.files.get(self, self.conan_data["binaries"][str(self.settings.os)][self.version]["url"], strip_root=True)
+        tools.files.get(self, self.conan_data["archive"][str(self.settings.os)][self.version]["url"], strip_root=True)
                         
     def package(self):
-        self.copy("clang-format", src=os.path.join(self.source_folder, "bin"), dst=os.path.join(self.package_folder, "bin"), keep_path=True)
+        tools = ["clang-format", "clang-tidy"]
+        for tool in tools:
+            self.copy(tool, src=os.path.join(self.source_folder, "bin"), dst=os.path.join(self.package_folder, "bin"), keep_path=True)
 
     def package_info(self):
         self.env_info.path.append(os.path.join(self.package_folder, "bin"))

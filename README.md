@@ -104,6 +104,12 @@ conan build .
 ./bin/stockscraper-cli fundamentals us2473617023
 ```
 
+### or run only the tests
+
+```
+python3 pipeline.py --gtest
+```
+
 ## How to generate your own HTTP certificate
 
 Using the tools provided with mbedtls:
@@ -120,6 +126,12 @@ programs/x509/cert_write selfsign=1 issuer_key=our_key.key                    \
 and copy the contents of "my_crt.crt" into the variable "const char* test_root_ca" in CHttpsGet.cpp
 
 ## Release History
+
+### v0.0.4
+
+* gtest tests
+* enhancements of conan recipes, gtest integration and pipeline
+* fundamentals parser adjustment
 
 ### v0.0.3
 

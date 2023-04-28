@@ -17,5 +17,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <gtest/gtest.h>
+#include "stockscraper.h"
+#include <iostream>
+#include <sstream>
 
-TEST(GetTimestamp, common) { }
+TEST(quoteForIsin, getQuote) {
+  CStockScraper scraper;
+  CStockScraper::SStockResult result;
+  result = scraper.quoteForIsin("US2473617023");
+
+  std::stringstream ss;
+  for (const auto &entry : result.dataSets) {
+      ss << entry.date << ";" << entry.key << ";" << entry.value << std::endl;
+      EXPECT_EQ("quote", entry.key)  << "quoteForIsin is outputing dataSet with key that is not 'quote'";
+      EXPECT_FALSE(entry.value.empty())  << "quoteForIsin is outputing dataSet with empty value";
+  }
+}
+
+TEST(quoteForIsin, dontPrintToStdOut) {
+  ::testing::internal::CaptureStdout();
+
+  CStockScraper scraper;
+  CStockScraper::SStockResult result;
+  result = scraper.quoteForIsin("US2473617023");
+
+  std::cout.flush();
+  std::string output = testing::internal::GetCapturedStdout();
+
+  EXPECT_TRUE(output.empty())  << "quoteForIsin is printing stuff to stdout";
+}
+
+TEST(quoteForIsin, fundamentalsForIsin) {
+  CStockScraper scraper;
+  CStockScraper::SStockResult result;
+  result = scraper.fundamentalsForIsin("US2473617023");
+
+  std::stringstream ss;
+  for (const auto &entry : result.dataSets) {
+      ss << entry.date << ";" << entry.key << ";" << entry.value << std::endl;
+      EXPECT_FALSE(entry.value.empty())  << "fundamentalsForIsin is outputing dataSet with empty value";
+  }
+
+  EXPECT_LE(result.dataSets.size(), 500U) << "fundamentalsForIsin is not outputing <200 entries" << std::endl << "output: " << ss.str();
+  EXPECT_GT(result.dataSets.size(), 5U) << "fundamentalsForIsin is not outputing >5 entries" << std::endl << "output: " << ss.str();
+}

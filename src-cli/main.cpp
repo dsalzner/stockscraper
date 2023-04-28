@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "public/stockscraper.h"
+#include "stockscraper.h"
 #include <iomanip> // setw
 #include <iostream>
 #include <string>

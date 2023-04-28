@@ -22,22 +22,27 @@ from conans import ConanFile, CMake, tools
 class StockScraperCli(ConanFile):
     name = "StockScraperCli"
     description = "Stock information scraping tool - Command-Line Interface"
-    license = "GPL-3.0"
+    version = "0.0.1"
+    author = "dennissalzner.de"
     url = "https://github.com/dsalzner/stockscraper.git"
-    homepage = "https://www.dennissalzner.de/"
-    settings = "os", "arch", "build_type"
+    license = "GPL-3.0"
+    settings = "os", "compiler", "arch", "build_type"
     generators = "cmake"
-    exports_sources = "*"
-    
+    cmake = None
+    exports = "*"
+
     def set_version(self):
-        git = tools.Git(folder=self.recipe_folder)
+        try:
+            git = tools.Git(folder=self.recipe_folder)
+            githash = git.get_revision()[:7]
+        except:
+            githash = "na"
         version = tools.load(os.path.join(self.recipe_folder, "..", "VERSION")).strip()
-        githash = git.get_revision()[:7]
         self.version = f'{version}_{githash}'
-        
+
     def requirements(self):
         self.requires(f'StockScraperLib/{self.version}@main/built')
-      
+
     def build(self):
         cmake = CMake(self)
         cmake.configure()

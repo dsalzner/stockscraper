@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CStocks.h"
 #include "common.h"
 #include <fstream>
-#include <iostream>
 #include <string>
 
 #define VERBOSE false
@@ -95,7 +94,7 @@ CStockScraper::SStockResult CStocks::fundamentalsForIsinFinanzenNet(std::string 
 
   std::string page = CHttpsGet::getHttpsRequest("www.finanzen.net", 443, fundamentalsUrl, fileName + ".txt");
 
-  d1 = "<article class=\"page-content__item\">";
+  d1 = "<article class=\"page-content";
   d2 = "</article>";
   while (page.find(d1) != std::string::npos) {
     std::string block = getAndEatTextBetweenDelimiters(page, d1, d2);
@@ -103,6 +102,7 @@ CStockScraper::SStockResult CStocks::fundamentalsForIsinFinanzenNet(std::string 
     std::string d1b = "<tr class=\"table__tr\">";
     std::string d2b = "</tr>";
     std::vector<std::string> years;
+
     while (block.find(d1b) != std::string::npos) {
       std::string line = getAndEatTextBetweenDelimiters(block, d1b, d2b);
 

@@ -16,30 +16,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
-from conans import ConanFile, CMake, tools
-from conans.errors import ConanInvalidConfiguration
+from conans import ConanFile, CMake
 
 class GTestTestConan(ConanFile):
-    settings = "os", "arch", "build_type"
+    name = "GTestTest"
+    version = "0.0.1"
+    author = "dennissalzner.de"
+    url = "https://github.com/dsalzner/stockscraper.git"
+    license = "GPL-3.0"
+    settings = "os", "compiler", "arch", "build_type"
     generators = "cmake"
+    cmake = None
+    requires = "gtest/1.8.1"
+    default_options = "gtest:shared=True"
 
-    def build_requirements(self):
-        self.tool_requires("gtest/1.8.1")
-        
-    def configure(self):
-        if self.settings.build_type != "Debug":
-            raise ConanInvalidConfiguration("GTest test recipe can only be run on Debug")
-
-    def imports(self):
-        self.copy("*", "bin", "bin")
-        self.copy("*.h")
-        
     def build(self):
         self.cmake = CMake(self)
         self.cmake.configure()
         self.cmake.build()
-        
+
+    def imports(self):
+        self.copy("*.so", "bin", "lib")
+        self.copy("*.dll", "bin", "bin")
+        self.copy("*.dylib", "bin", "lib")
+
     def test(self):
         target_test = "RUN_TESTS" if self.settings.os == "Windows" else "test"
         self.cmake.build(target=target_test)
